@@ -37,7 +37,6 @@ def generate_sample_data():
 
     data = []
 
-    # 연어 분석용 샘플 데이터
     collocation_data = []
     collocations = {
         "주인": ["집의", "가게의", "애완동물의", "회사의", "권리의"],
@@ -64,23 +63,19 @@ def generate_sample_data():
 
 
 
-# 연어 분석
 if menu == "연어 분석":
     st.header("연어 분석")
 
     _, collocation_df = generate_sample_data()
 
-    # 단어 목록 추출
     words = sorted(collocation_df["단어"].unique())
 
-    # 분석할 단어 선택
     col1, col2 = st.columns(2)
 
     with col1:
         word1 = st.selectbox("첫 번째 단어 선택", words, index=0)
 
     with col2:
-        # 두 번째 단어는 첫 번째 단어와 대응되는 외래어/고유어를 자동으로 선택
         if word1 == "주인":
             default_idx = words.index("오너") if "오너" in words else 0
         elif word1 == "오너":
@@ -98,11 +93,9 @@ if menu == "연어 분석":
 
         word2 = st.selectbox("두 번째 단어 선택", words, index=default_idx)
 
-    # 선택된 단어들의 연어 데이터 필터링
     word1_data = collocation_df[collocation_df["단어"] == word1].sort_values("빈도", ascending=False)
     word2_data = collocation_df[collocation_df["단어"] == word2].sort_values("빈도", ascending=False)
 
-    # 두 단어의 연어 비교
     st.subheader(f"'{word1}'와(과) '{word2}'의 연어 비교")
 
     col1, col2 = st.columns(2)
@@ -111,7 +104,6 @@ if menu == "연어 분석":
         st.write(f"### '{word1}'의 연어")
         st.table(word1_data[["연어", "빈도"]])
 
-        # 워드클라우드 대신 막대 그래프
         fig = px.bar(
             word1_data,
             x="연어",
@@ -126,7 +118,6 @@ if menu == "연어 분석":
         st.write(f"### '{word2}'의 연어")
         st.table(word2_data[["연어", "빈도"]])
 
-        # 워드클라우드 대신 막대 그래프
         fig = px.bar(
             word2_data,
             x="연어",
@@ -137,7 +128,6 @@ if menu == "연어 분석":
         )
         st.plotly_chart(fig)
 
-    # 연어 분석 해석
     st.subheader("연어 분석 해석")
 
     if word1 == "주인" and word2 == "오너":
