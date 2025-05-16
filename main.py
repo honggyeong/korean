@@ -33,46 +33,11 @@ menu = st.sidebar.radio(
 
 
 def generate_sample_data():
-
-
+    
 
     data = []
 
-    for native, foreign in pairs:
-        native_bias = np.random.uniform(1.5, 3.0)
-
-        for year in years:
-            year_factor = 1 + (year - 2009) * 0.05
-
-            for category in categories:
-                if foreign in ["오너", "테크"] and category == "경제":
-                    native_count = int(np.random.normal(50, 15) * year_factor)
-                    foreign_count = int(np.random.normal(70, 20) * year_factor)
-
-                elif foreign in ["뷰티", "플라워"] and category == "문화":
-                    native_count = int(np.random.normal(40, 10) * year_factor)
-                    foreign_count = int(np.random.normal(65, 15) * year_factor)
-
-                elif foreign == "바캉스" and category == "연예":
-                    native_count = int(np.random.normal(30, 10) * year_factor)
-                    foreign_count = int(np.random.normal(55, 15) * year_factor)
-
-                else:
-                    native_count = int(np.random.normal(80, 20) * year_factor)
-                    foreign_count = int(np.random.normal(80 / native_bias, 15) * year_factor)
-
-                native_count = max(0, native_count)
-                foreign_count = max(0, foreign_count)
-
-                data.append({
-                    "연도": year,
-                    "분야": category,
-                    "고유어": native,
-                    "외래어": foreign,
-                    "고유어_빈도": native_count,
-                    "외래어_빈도": foreign_count
-                })
-
+    # 연어 분석용 샘플 데이터
     collocation_data = []
     collocations = {
         "주인": ["집의", "가게의", "애완동물의", "회사의", "권리의"],
@@ -99,19 +64,23 @@ def generate_sample_data():
 
 
 
+# 연어 분석
 if menu == "연어 분석":
     st.header("연어 분석")
 
     _, collocation_df = generate_sample_data()
 
+    # 단어 목록 추출
     words = sorted(collocation_df["단어"].unique())
 
+    # 분석할 단어 선택
     col1, col2 = st.columns(2)
 
     with col1:
         word1 = st.selectbox("첫 번째 단어 선택", words, index=0)
 
     with col2:
+        # 두 번째 단어는 첫 번째 단어와 대응되는 외래어/고유어를 자동으로 선택
         if word1 == "주인":
             default_idx = words.index("오너") if "오너" in words else 0
         elif word1 == "오너":
@@ -129,9 +98,11 @@ if menu == "연어 분석":
 
         word2 = st.selectbox("두 번째 단어 선택", words, index=default_idx)
 
+    # 선택된 단어들의 연어 데이터 필터링
     word1_data = collocation_df[collocation_df["단어"] == word1].sort_values("빈도", ascending=False)
     word2_data = collocation_df[collocation_df["단어"] == word2].sort_values("빈도", ascending=False)
 
+    # 두 단어의 연어 비교
     st.subheader(f"'{word1}'와(과) '{word2}'의 연어 비교")
 
     col1, col2 = st.columns(2)
@@ -140,6 +111,7 @@ if menu == "연어 분석":
         st.write(f"### '{word1}'의 연어")
         st.table(word1_data[["연어", "빈도"]])
 
+        # 워드클라우드 대신 막대 그래프
         fig = px.bar(
             word1_data,
             x="연어",
@@ -154,6 +126,7 @@ if menu == "연어 분석":
         st.write(f"### '{word2}'의 연어")
         st.table(word2_data[["연어", "빈도"]])
 
+        # 워드클라우드 대신 막대 그래프
         fig = px.bar(
             word2_data,
             x="연어",
@@ -164,6 +137,7 @@ if menu == "연어 분석":
         )
         st.plotly_chart(fig)
 
+    # 연어 분석 해석
     st.subheader("연어 분석 해석")
 
     if word1 == "주인" and word2 == "오너":
