@@ -12,23 +12,19 @@ from PIL import Image
 import io
 import base64
 
-# 한글 폰트 설정
 plt.rcParams['font.family'] = 'Malgun Gothic'
 plt.rcParams['axes.unicode_minus'] = False
 
-# 페이지 설정
 st.set_page_config(
     page_title="외래어 분석 도구",
     page_icon="📊",
     layout="wide"
 )
 
-# 헤더
 st.title("외래어 사용 패턴 분석 도구")
 st.markdown("""연어 분석을 통해 외래어의 사용과 한국어의 사용이 어떠한 차이점을 가지게 되는지 알아본다
 """)
 
-# 사이드바
 st.sidebar.title("메뉴")
 menu = st.sidebar.radio(
     "분석 도구 선택",
@@ -36,61 +32,38 @@ menu = st.sidebar.radio(
 )
 
 
-# 샘플 데이터 생성 함수
 def generate_sample_data():
-    # 대응쌍 샘플
-    pairs = [
-        ("주인", "오너"),
-        ("아름다움", "뷰티"),
-        ("꽃", "플라워"),
-        ("선물", "기프트"),
-        ("일", "워크"),
-        ("음식", "푸드"),
-        ("고객", "커스터머"),
-        ("기술", "테크"),
-        ("마음", "하트"),
-        ("휴가", "바캉스")
-    ]
 
-    # 분야별 샘플 데이터
-    categories = ["경제", "사회", "정치", "문화", "스포츠", "과학", "연예", "교육", "국제"]
-    years = list(range(2009, 2019))
+
 
     data = []
 
-    # 각 대응쌍에 대한 샘플 데이터 생성
     for native, foreign in pairs:
-        # 기본적으로 고유어가 더 많이 사용되지만, 특정 분야에서는 외래어가 더 많이 사용될 수 있음
         native_bias = np.random.uniform(1.5, 3.0)
 
         for year in years:
-            # 시간에 따른 증가 추세 반영
             year_factor = 1 + (year - 2009) * 0.05
 
             for category in categories:
-                # 분야별로 다른 패턴 생성
                 if foreign in ["오너", "테크"] and category == "경제":
-                    # 경제 분야에서는 '오너'와 '테크'가 더 많이 사용됨
                     native_count = int(np.random.normal(50, 15) * year_factor)
                     foreign_count = int(np.random.normal(70, 20) * year_factor)
+
                 elif foreign in ["뷰티", "플라워"] and category == "문화":
-                    # 문화 분야에서는 '뷰티'와 '플라워'가 더 많이 사용됨
                     native_count = int(np.random.normal(40, 10) * year_factor)
                     foreign_count = int(np.random.normal(65, 15) * year_factor)
+
                 elif foreign == "바캉스" and category == "연예":
-                    # 연예 분야에서는 '바캉스'가 더 많이 사용됨
                     native_count = int(np.random.normal(30, 10) * year_factor)
                     foreign_count = int(np.random.normal(55, 15) * year_factor)
+
                 else:
-                    # 다른 경우에는 고유어가 더 많이 사용됨
                     native_count = int(np.random.normal(80, 20) * year_factor)
                     foreign_count = int(np.random.normal(80 / native_bias, 15) * year_factor)
 
-                # 음수 방지
                 native_count = max(0, native_count)
                 foreign_count = max(0, foreign_count)
 
-                # 데이터 추가
                 data.append({
                     "연도": year,
                     "분야": category,
@@ -100,7 +73,6 @@ def generate_sample_data():
                     "외래어_빈도": foreign_count
                 })
 
-    # 연어 분석용 샘플 데이터
     collocation_data = []
     collocations = {
         "주인": ["집의", "가게의", "애완동물의", "회사의", "권리의"],
@@ -127,23 +99,19 @@ def generate_sample_data():
 
 
 
-# 연어 분석
 if menu == "연어 분석":
     st.header("연어 분석")
 
     _, collocation_df = generate_sample_data()
 
-    # 단어 목록 추출
     words = sorted(collocation_df["단어"].unique())
 
-    # 분석할 단어 선택
     col1, col2 = st.columns(2)
 
     with col1:
         word1 = st.selectbox("첫 번째 단어 선택", words, index=0)
 
     with col2:
-        # 두 번째 단어는 첫 번째 단어와 대응되는 외래어/고유어를 자동으로 선택
         if word1 == "주인":
             default_idx = words.index("오너") if "오너" in words else 0
         elif word1 == "오너":
@@ -161,11 +129,9 @@ if menu == "연어 분석":
 
         word2 = st.selectbox("두 번째 단어 선택", words, index=default_idx)
 
-    # 선택된 단어들의 연어 데이터 필터링
     word1_data = collocation_df[collocation_df["단어"] == word1].sort_values("빈도", ascending=False)
     word2_data = collocation_df[collocation_df["단어"] == word2].sort_values("빈도", ascending=False)
 
-    # 두 단어의 연어 비교
     st.subheader(f"'{word1}'와(과) '{word2}'의 연어 비교")
 
     col1, col2 = st.columns(2)
@@ -174,7 +140,6 @@ if menu == "연어 분석":
         st.write(f"### '{word1}'의 연어")
         st.table(word1_data[["연어", "빈도"]])
 
-        # 워드클라우드 대신 막대 그래프
         fig = px.bar(
             word1_data,
             x="연어",
@@ -189,7 +154,6 @@ if menu == "연어 분석":
         st.write(f"### '{word2}'의 연어")
         st.table(word2_data[["연어", "빈도"]])
 
-        # 워드클라우드 대신 막대 그래프
         fig = px.bar(
             word2_data,
             x="연어",
@@ -200,7 +164,6 @@ if menu == "연어 분석":
         )
         st.plotly_chart(fig)
 
-    # 연어 분석 해석
     st.subheader("연어 분석 해석")
 
     if word1 == "주인" and word2 == "오너":
